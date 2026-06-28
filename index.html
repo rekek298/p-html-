@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ساحر المواقع - أداة سحب وعرض أكواد HTML</title>
+    <meta name="description" content="أداة احترافية لسحب كود HTML من أي موقع وعرضه مع معاينة مباشرة">
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --panel: #111128;
+            --accent: #ff4757;
+            --accent-hover: #ff3344;
+            --green: #2ed573;
+            --gold: #ffa502;
+            --text: #c8d6e5;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(ellipse at top, rgba(255,71,87,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(55,66,250,0.05) 0%, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            color: #fff;
+        }
+
+        .container {
+            width: 97%;
+            max-width: 1550px;
+            height: 94vh;
+            background: rgba(20,20,40,0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+        }
+
+        /* ========== الهيدر ========== */
+        .header {
+            padding: 14px 20px;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo .icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .url-group {
+            flex: 1;
+            display: flex;
+            min-width: 280px;
+            gap: 8px;
+        }
+
+        .url-group input {
+            flex: 1;
+            padding: 11px 18px;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 30px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            direction: ltr;
+            transition: 0.3s;
+        }
+        .url-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 18px rgba(255,71,87,0.15);
+        }
+        .url-group input::placeholder {
+            color: #555;
+        }
+
+        .btn {
+            padding: 11px 22px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        .btn-fetch {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-fetch:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 25px rgba(255,71,87,0.35);
+            transform: translateY(-1px);
+        }
+        .btn-fetch:disabled {
+            background: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .badge {
+            padding: 7px 15px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+        .badge.ok {
+            background: rgba(46,213,115,0.15);
+            color: var(--green);
+        }
+        .badge.err {
+            background: rgba(255,71,87,0.15);
+            color: var(--accent);
+        }
+        .badge.load {
+            background: rgba(255,165,2,0.15);
+            color: var(--gold);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ========== المحتوى الرئيسي ========== */
+        .main {
+            flex: 1;
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .panel-header {
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.35);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: #999;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .panel-header .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .sm-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #aaa;
+            padding: 5px 11px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sm-btn:hover {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            background: #0a0a18;
+            color: var(--text);
+            border: none;
+            padding: 15px;
+            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.7;
+            resize: none;
+            outline: none;
+            direction: ltr;
+            tab-size: 2;
+        }
+        textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #050510;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #2a2a3a;
+            border-radius: 5px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #3a3a4a;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border: none;
+        }
+
+        /* ========== شريط الأدوات ========== */
+        .toolbar {
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .tbtn {
+            padding: 6px 13px;
+            border-radius: 18px;
+            border: 1px solid;
+            cursor: pointer;
+            font-size: 0.73rem;
+            font-weight: 600;
+            background: transparent;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tbtn:hover {
+            transform: translateY(-1px);
+        }
+        .tbtn-fix {
+            color: var(--green);
+            border-color: var(--green);
+        }
+        .tbtn-fix:hover {
+            background: var(--green);
+            color: #000;
+        }
+        .tbtn-css {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+        .tbtn-css:hover {
+            background: var(--gold);
+            color: #000;
+        }
+        .tbtn-beautify {
+            color: #a29bfe;
+            border-color: #a29bfe;
+        }
+        .tbtn-beautify:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
+        /* ========== الفوتر ========== */
+        .footer {
+            padding: 7px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #444;
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+        .footer a {
+            color: #666;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: var(--accent);
+        }
+
+        /* ========== تجاوب ========== */
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .panel {
+                min-width: 100%;
+                min-height: 300px;
+            }
+            .header {
+                gap: 8px;
+            }
+            .logo {
+                font-size: 1.1rem;
+            }
+            .url-group input {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="logo">
+            <div class="icon">🌐</div>
+            ساحر المواقع
+        </div>
+        <div class="url-group">
+            <input 
+                type="text" 
+                id="urlInput" 
+                placeholder="أدخل رابط الموقع... مثال: https://example.com"
+                value=""
+                autocomplete="off"
+            >
+            <button class="btn btn-fetch" id="fetchBtn">
+                <span>🔍</span> جلب
+            </button>
+        </div>
+        <span class="badge" id="statusBadge">⚪ جاهز</span>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main">
+        <!-- لوحة الكود -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>📝 كود HTML المستخرج</span>
+                <div class="actions">
+                    <button class="sm-btn" id="copyBtn">📋 نسخ</button>
+                    <button class="sm-btn" id="clearBtn">🗑️ مسح</button>
+                </div>
+            </div>
+            <textarea 
+                id="htmlCode" 
+                placeholder="سيظهر الكود هنا بعد جلب الموقع..."
+                spellcheck="false"
+            ></textarea>
+            <div class="toolbar">
+                <button class="tbtn tbtn-fix" id="fixBtn">🔗 إصلاح الروابط</button>
+                <button class="tbtn tbtn-css" id="cssBtn">🎨 جلب الستايلات</button>
+                <button class="tbtn tbtn-beautify" id="beautifyBtn">✨ تنسيق الكود</button>
+            </div>
+        </div>
+
+        <!-- لوحة المعاينة -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>👁️ معاينة مباشرة</span>
+                <button class="sm-btn" id="refreshBtn">🔄 تحديث</button>
+            </div>
+            <iframe 
+                id="previewFrame" 
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+                title="معاينة الموقع"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <div class="footer">
+        تم التطوير بواسطتك ❤️ | يعمل على <a href="https://vercel.com" target="_blank">Vercel</a> | أداة سحب وعرض أكواد HTML
+    </div>
+</div>
+
+<script>
+    // ============ العناصر ============
+    const urlInput = document.getElementById('urlInput');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const htmlCodeArea = document.getElementById('htmlCode');
+    const previewFrame = document.getElementById('previewFrame');
+    const statusBadge = document.getElementById('statusBadge');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const fixBtn = document.getElementById('fixBtn');
+    const cssBtn = document.getElementById('cssBtn');
+    const beautifyBtn = document.getElementById('beautifyBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    let lastUrl = '';
+    let originalHtml = '';
+
+    // ============ دوال مساعدة ============
+    function setStatus(text, type = '') {
+        statusBadge.textContent = text;
+        statusBadge.className = 'badge';
+        if (type) statusBadge.classList.add(type);
+    }
+
+    function updatePreview(code) {
+        const finalCode = code || htmlCodeArea.value;
+        const frameDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        frameDoc.open();
+        frameDoc.write(finalCode);
+        frameDoc.close();
+    }
+
+    function getBaseUrl(url) {
+        try {
+            const u = new URL(url);
+            return u.origin + '/';
+        } catch(e) {
+            return url.substring(0, url.lastIndexOf('/') + 1);
+        }
+    }
+
+    function injectBaseTag(html, baseUrl) {
+        if (/<base\s/i.test(html)) {
+            return html.replace(/<base\s[^>]*>/i, `<base href="${baseUrl}">`);
+        } else if (/<head>/i.test(html)) {
+            return html.replace(/<head>/i, `<head>\n  <base href="${baseUrl}">`);
+        } else {
+            return `<base href="${baseUrl}">\n` + html;
+        }
+    }
+
+    function removeBlockers(html) {
+        html = html.replace(/<meta[^>]*Content-Security-Policy[^>]*>/gi, '<!-- CSP removed -->');
+        html = html.replace(/(top\.location|window\.top|self\.location)\s*=\s*[^;]+;?/gi, '// blocked framebuster');
+        html = html.replace(/<script[^>]*crossorigin[^>]*>[\s\S]*?<\/script>/gi, '<!-- cross-origin script removed -->');
+        return html;
+    }
+
+    // ============ جلب الموقع ============
+    async function fetchSite(url) {
+        if (!url) {
+            alert('الرجاء إدخال رابط الموقع');
+            return;
+        }
+
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+            urlInput.value = url;
+        }
+
+        lastUrl = url;
+        setStatus('⏳ جاري الجلب...', 'load');
+        fetchBtn.disabled = true;
+        htmlCodeArea.value = 'جاري جلب وتحليل الموقع...\nالرجاء الانتظار...';
+
+        try {
+            // استخدام API المحلي على Vercel
+            const response = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `خطأ ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.html || data.html.length < 100) {
+                throw new Error('المحتوى المستلم قصير جداً أو فارغ');
+            }
+
+            originalHtml = data.html;
+            const baseUrl = getBaseUrl(url);
+            let processedHtml = injectBaseTag(data.html, baseUrl);
+            processedHtml = removeBlockers(processedHtml);
+
+            htmlCodeArea.value = processedHtml;
+            updatePreview(processedHtml);
+            setStatus('✅ تم بنجاح', 'ok');
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            htmlCodeArea.value = `<!-- ❌ فشل جلب الموقع: ${url} -->\n<!-- السبب: ${error.message} -->\n\n<!-- نصائح: -->\n<!-- 1. تأكد من صحة الرابط -->\n<!-- 2. بعض المواقع المحمية بقوة (Cloudflare) قد تفشل -->\n<!-- 3. جرب مواقع بسيطة أولاً مثل example.com -->`;
+            updatePreview(htmlCodeArea.value);
+            setStatus('❌ فشل الجلب', 'err');
+        } finally {
+            fetchBtn.disabled = false;
+        }
+    }
+
+    // ============ جلب الستايلات الخارجية ودمجها ============
+    async function fetchAndInlineCSS() {
+        if (!lastUrl) {
+            alert('اسحب موقعاً أولاً');
+            return;
+        }
+
+        setStatus('⏳ جاري جلب الستايلات...', 'load');
+        const baseUrl = getBaseUrl(lastUrl);
+        let html = htmlCodeArea.value;
+        const linkRegex = /<link[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
+        const matches = [...html.matchAll(linkRegex)];
+
+        for (const match of matches) {
+            const fullTag = match[0];
+            let href = match[1];
+
+            try {
+                href = new URL(href, baseUrl).href;
+            } catch(e) {
+                continue;
+            }
+
+            try {
+                const cssResponse = await fetch(`/api/fetch?url=${encodeURIComponent(href)}`);
+                if (cssResponse.ok) {
+                    const cssData = await cssResponse.json();
+                    if (cssData.html) {
+                        html = html.replace(fullTag, `<style>/* ${href} */\n${cssData.html}\n</style>`);
+                    }
+                }
+            } catch(e) {
+                console.warn('Failed to inline CSS:', href);
+            }
+        }
+
+        htmlCodeArea.value = html;
+        updatePreview(html);
+        setStatus('✅ تم تضمين الستايلات', 'ok');
+    }
+
+    // ============ تنسيق الكود ============
+    function beautifyHTML(html) {
+        let result = '';
+        let indent = 0;
+        const selfClosing = /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)[^>]*>/i;
+        const tags = html.replace(/>\s*</g, '>\n<').split('\n');
+
+        for (let tag of tags) {
+            tag = tag.trim();
+            if (!tag) continue;
+            if (tag.match(/^<\/\w/)) indent = Math.max(0, indent - 1);
+            result += '  '.repeat(indent) + tag + '\n';
+            if (tag.match(/^<\w[^>]*[^/]>$/) && !tag.match(selfClosing)) indent++;
+        }
+        return result.trim();
+    }
+
+    // ============ الأحداث ============
+    fetchBtn.addEventListener('click', () => fetchSite(urlInput.value.trim()));
+
+    urlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') fetchSite(urlInput.value.trim());
+    });
+
+    copyBtn.addEventListener('click', () => {
+        if (!htmlCodeArea.value) return;
+        htmlCodeArea.select();
+        document.execCommand('copy');
+        setStatus('📋 تم النسخ!', 'ok');
+        setTimeout(() => {
+            if (statusBadge.textContent === '📋 تم النسخ!') {
+                setStatus('✅ تم بنجاح', 'ok');
+            }
+        }, 2000);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        htmlCodeArea.value = '';
+        updatePreview('');
+        lastUrl = '';
+        originalHtml = '';
+        setStatus('⚪ جاهز');
+    });
+
+    fixBtn.addEventListener('click', () => {
+        if (!lastUrl) {
+            alert('اسحب موقعاً أولاً');
+            return;
+        }
+        htmlCodeArea.value = injectBaseTag(htmlCodeArea.value, getBaseUrl(lastUrl));
+        updatePreview();
+        setStatus('🔗 تم إصلاح الروابط', 'ok');
+    });
+
+    cssBtn.addEventListener('click', fetchAndInlineCSS);
+
+    beautifyBtn.addEventListener('click', () => {
+        if (!htmlCodeArea.value) return;
+        htmlCodeArea.value = beautifyHTML(htmlCodeArea.value);
+        updatePreview();
+        setStatus('✨ تم التنسيق', 'ok');
+    });
+
+    refreshBtn.addEventListener('click', () => updatePreview());
+
+    // ============ تحميل الصفحة ============
+    window.addEventListener('load', () => {
+        const demoCode = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحباً بك في ساحر المواقع</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 480px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .card h1 { color: #333; margin-bottom: 10px; }
+        .card p { color: #666; line-height: 1.8; margin: 10px 0; }
+        .card .emoji { font-size: 3rem; }
+        .tips {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="emoji">🌐</div>
+        <h1>ساحر المواقع جاهز!</h1>
+        <p>أدخل رابط أي موقع في الأعلى واضغط <strong>جلب</strong></p>
+        <div class="tips">
+            <strong>💡 نصائح:</strong><br>
+            • جرب: example.com - neocities.org<br>
+            • المواقع المحمية بقوة قد لا تعمل<br>
+            • استخدم أزرار الإصلاح إذا ظهرت شاشة بيضاء
+        </div>
+    </div>
+</body>
+</html>`;
+        htmlCodeArea.value = demoCode;
+        updatePreview(demoCode);
+    });
+</script>
+
+</body>
+</html>

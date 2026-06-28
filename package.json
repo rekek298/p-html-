@@ -1,0 +1,13 @@
+{
+  "name": "site-fetcher",
+  "version": "2.0.0",
+  "description": "أداة سحب وعرض أكواد HTML من أي موقع",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["html", "fetcher", "scraper", "viewer"],
+  "author": "",
+  "license": "MIT"
+}
